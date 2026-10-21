@@ -2,7 +2,7 @@
 // 形の計算は loomis.js。ここは「点の並び → チューブ」と、頭の向き・位置・拡大の操作だけを持つ。
 
 import * as THREE from 'three';
-import { buildHead, makeBall, RED } from 'loomis.js';
+import { buildHead, makeBall, RED } from './loomis.js';
 
 // 線と球の色。style.css の --guide-red / --guide-blue / --sphere から読む（デザインを変えても追従する）
 export const COLORS = { red: '#f03e6e', blue: '#3b7cff', gray: '#cdc7d6' };
@@ -710,4 +710,4 @@ function solveLinear(M, b) {
     d[r] = s / A[r][r];
   }
   return d.every(Number.isFinite) ? d : null;
-}
+        }
