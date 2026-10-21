@@ -1,7 +1,7 @@
 // プリセット値（SPEC §8 の仮値。実装後に見た目で調整する）
 // 書いていないキーは「標準」（SHAPE_PARAMS の初期値）になる。
 
-import { defaultShape } from 'loomis.js';
+import { defaultShape } from './loomis.js';
 
 export const PRESETS = [
   { id: 'standard', label: '標準',       values: { r0: 0.68, eye: 0.0,   jaw_len: 0.40, jaw_x: 0.62, chin_len: 1.0,  chin_w: 0.22 } },
