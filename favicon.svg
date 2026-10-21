@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- ぐるぐるルーミスのファビコン: ピンクの地にルーミスの球（赤の十字）と顎ライン（青） -->
+  <rect width="64" height="64" rx="16" fill="#ffd9e6"/>
+  <circle cx="32" cy="27" r="17" fill="#ffffff" stroke="#f03e6e" stroke-width="4"/>
+  <path d="M32 10v34M15 27h34" stroke="#f03e6e" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M17 33l8 18h14l8-18" fill="none" stroke="#3b7cff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

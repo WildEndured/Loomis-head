@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="ja">
+
+<!-- Mirrored from https://nebu-apps.nebu5963.workers.dev/loomis-head/ by HTTrack Website Copier/3.x [XR&CO], Wed, 21 Oct 2026 20:44:42 GMT -->
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ぐるぐるルーミス｜アタリヘッド3D作成ツール</title>
+<meta name="description" content="顔のアタリ用のルーミスヘッドをブラウザで回して、自分の下絵に角度を合わせられるツール。PNG と 3D（GLB）で保存できます。">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="canonical" href="index.html">
+<!-- X などでリンクを貼ったときのカード -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ぐるぐるルーミス">
+<meta property="og:title" content="ぐるぐるルーミス｜アタリヘッド3D作成ツール">
+<meta property="og:description" content="顔のアタリ用のルーミスヘッドをブラウザで回して、自分の下絵に角度を合わせられるツール。PNG と 3D（GLB）で保存できます。">
+<meta property="og:url" content="index.html">
+<meta property="og:image" content="ogp.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ja_JP">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&amp;family=Mochiy+Pop+One&amp;family=Zen+Maru+Gothic:wght@500;700&amp;display=swap">
+<link rel="stylesheet" href="style.css">
+<script>
+// 動かない環境でも真っ白にしない（SPEC §12）。古いブラウザでも動くように、ここだけ昔の書き方。
+// main.js が最後まで起動すると window.__loomisReady = true。ページを読み終えても立たなければ案内を出す。
+// WebGL（3D）が使えないときは main.js から __loomisShowError('webgl') を呼ぶ。
+(function () {
+  var MSG = {
+    start: {
+      ja: 'このブラウザでは動きませんでした。最新の Chrome・Safari・Edge でお試しください（iPhone・iPad は iOS 16.4 以降）。',
+      en: "This tool couldn't start in this browser. Please try the latest Chrome, Safari, or Edge (iPhone/iPad: iOS 16.4 or later).",
+      ko: '이 브라우저에서는 실행되지 않았습니다. 최신 Chrome·Safari·Edge에서 시도해 주세요(iPhone·iPad는 iOS 16.4 이상).',
+      'zh-Hans': '本工具无法在此浏览器中运行。请使用最新版 Chrome、Safari 或 Edge（iPhone／iPad 需 iOS 16.4 以上）。',
+      'zh-Hant': '本工具無法在此瀏覽器中執行。請使用最新版 Chrome、Safari 或 Edge（iPhone／iPad 需 iOS 16.4 以上）。'
+    },
+    webgl: {
+      ja: 'この端末・ブラウザでは3D表示（WebGL）が使えないため、表示できません。ブラウザの設定で「ハードウェアアクセラレーション」をオンにするか、別のブラウザでお試しください。',
+      en: "3D graphics (WebGL) aren't available on this device or browser. Turn on hardware acceleration in your browser settings, or try another browser.",
+      ko: '이 기기·브라우저에서는 3D 표시(WebGL)를 사용할 수 없습니다. 브라우저 설정에서 하드웨어 가속을 켜거나 다른 브라우저에서 시도해 주세요.',
+      'zh-Hans': '此设备或浏览器无法使用 3D 显示（WebGL）。请在浏览器设置中开启硬件加速，或换用其他浏览器。',
+      'zh-Hant': '此裝置或瀏覽器無法使用 3D 顯示（WebGL）。請在瀏覽器設定中開啟硬體加速，或改用其他瀏覽器。'
+    }
+  };
+  function lang() {
+    try {
+      var saved = localStorage.getItem('loomis-head:lang');
+      if (saved && MSG.start[saved]) return saved;
+    } catch (e) {}
+    var list = navigator.languages || [navigator.language || ''];
+    for (var i = 0; i < list.length; i++) {
+      var tag = String(list[i]).toLowerCase(), base = tag.split('-')[0];
+      if (base === 'ja' || base === 'en' || base === 'ko') return base;
+      if (base === 'zh') return /hant|-tw|-hk|-mo/.test(tag) ? 'zh-Hant' : 'zh-Hans';
+    }
+    return 'ja';
+  }
+  var shown = false;
+  window.__loomisShowError = function (kind) {
+    if (shown) return;
+    var box = document.getElementById('boot-error');
+    if (!box) return;
+    shown = true;
+    var l = lang();
+    document.getElementById('boot-error-msg').textContent = (MSG[kind] || MSG.start)[l];
+    box.removeAttribute('hidden');
+  };
+  window.addEventListener('load', function () {
+    setTimeout(function () { if (!window.__loomisReady) window.__loomisShowError('start'); }, 2000);
+  });
+})();
+</script>
+<script type="importmap">
+{ "imports": { "three": "./vendor/three/three.module.js", "three/addons/": "./vendor/three/addons/" } }
+</script>
+<script type="module" src="main.js"></script>
+</head>
+<body>
+<div class="app">
+
+  <main class="stage" id="stage">
+    <div class="sheet" aria-hidden="true">
+      <div class="sheet-outer"></div>
+      <div class="sheet-inner"></div>
+    </div>
+    <div class="underlay" id="underlay"><img id="underlay-img" alt=""></div>
+    <div class="gl" id="gl"></div>
+    <div class="labels" id="labels" aria-hidden="true"></div>
+    <div class="fit-layer" id="fit-layer" hidden></div>
+
+    <header class="title">
+      <h1 data-i18n="title">ぐるぐるルーミス</h1>
+      <p data-i18n="subtitle">アタリヘッド3D作成ツール</p>
+    </header>
+    <ul class="hints">
+      <li><b data-i18n="hint.drag">ドラッグ</b><span data-i18n="hint.dragDo">頭を回す</span></li>
+      <li><b data-i18n="hint.pan">右ドラッグ／2本指</b><span data-i18n="hint.panDo">頭を動かす</span></li>
+      <li><b data-i18n="hint.zoom">ホイール／ピンチ</b><span data-i18n="hint.zoomDo">拡大</span></li>
+    </ul>
+    <div class="view-tools">
+    <div class="history">
+      <button class="btn btn-small" id="undo" type="button" title="Ctrl+Z" disabled data-i18n="undo">ひとつ前に戻す</button>
+      <button class="btn btn-small" id="reset-all" type="button" data-i18n="resetAll">初期状態に戻す</button>
+    </div>
+    <div class="angles" role="group" aria-label="角度" data-i18n-attr="aria-label:angles">
+      <span class="angles-label" data-i18n="angles">角度</span>
+      <div class="seg">
+        <button class="btn" type="button" data-angle="front" data-i18n="view.front">正面</button>
+        <button class="btn" type="button" data-angle="side" title="もう一度押すと反対向き" data-i18n="view.side" data-i18n-attr="title:view.flip">横</button>
+        <button class="btn" type="button" data-angle="oblique" title="もう一度押すと反対向き" data-i18n="view.oblique" data-i18n-attr="title:view.flip">斜め</button>
+      </div>
+      <button class="btn" id="fit-start" type="button" aria-pressed="false" data-i18n="fit.start" hidden>3点で合わせる</button>
+    </div>
+    </div>
+    <div class="fit-bar" id="fit-bar" role="status" hidden>
+      <span id="fit-msg"></span>
+      <button class="btn btn-small" id="fit-other" type="button" data-i18n="fit.other" hidden>別の向き</button>
+      <button class="btn btn-small" id="fit-done" type="button" data-i18n="fit.done">完了</button>
+    </div>
+    <div class="drop-cover" id="drop-cover" hidden><span data-i18n="drop">ここに画像を置く</span></div>
+  </main>
+
+  <aside class="panel" id="panel" aria-label="設定" data-i18n-attr="aria-label:settings">
+    <button class="sheet-handle" id="sheet-handle" type="button" aria-expanded="false" aria-controls="panel-body" data-i18n="settings">設定</button>
+    <div class="panel-body" id="panel-body">
+      <div class="panel-top">
+        <select class="lang" id="lang" aria-label="言語" data-i18n-attr="aria-label:lang"></select>
+      </div>
+
+      <section class="sec">
+        <h2 class="sec-h"><span data-i18n="sec.presets">プリセット</span></h2>
+        <div class="sec-body">
+          <div class="presets" id="presets"></div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <h2 class="sec-h"><span data-i18n="sec.underlay">下絵</span></h2>
+        <div class="sec-body">
+          <div class="tabs" role="tablist" id="underlay-tabs"></div>
+          <div class="underlay-file" id="underlay-file">
+            <button class="btn" id="underlay-pick" type="button" data-i18n="underlay.pick">画像を読み込む</button>
+            <span class="file-name" id="underlay-name">ファイル選択・ドラッグ＆ドロップ・Ctrl+V</span>
+            <button class="btn btn-icon" id="underlay-remove" type="button" aria-label="下絵を外す" data-i18n-attr="aria-label:underlay.remove" hidden>×</button>
+            <input type="file" id="underlay-input" accept="image/*" hidden>
+          </div>
+          <div class="sliders" id="underlay-sliders"></div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <h2 class="sec-h"><span data-i18n="sec.shape">形</span></h2>
+        <div class="sec-body">
+          <p class="note" data-i18n="note.shape">番号は画面のガイドの番号です。ダブルクリック（長押し）でその値だけ初期値に戻ります。</p>
+          <div class="sliders" id="shape-sliders"></div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <h2 class="sec-h"><span data-i18n="sec.display">表示</span></h2>
+        <div class="sec-body">
+          <div class="sliders" id="display-sliders"></div>
+          <div class="toggles">
+            <button class="btn" id="toggle-sphere" type="button" aria-pressed="true" data-i18n="show.sphere">球を表示</button>
+            <button class="btn" id="toggle-labels" type="button" aria-pressed="true" data-i18n="show.labels">番号を表示</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <h2 class="sec-h"><span data-i18n="sec.save">保存</span></h2>
+        <div class="sec-body">
+          <div class="saves">
+            <button class="btn btn-strong" id="save-png" type="button" data-i18n="save.png">PNG保存</button>
+            <button class="btn btn-strong" id="save-glb" type="button" data-i18n="save.glb">3D保存（GLB）</button>
+          </div>
+          <p class="note" id="save-msg" role="status"></p>
+        </div>
+      </section>
+
+      <div class="panel-foot">
+        <button class="link-btn" id="about-open" type="button" data-i18n="about.link">このツールについて</button>
+      </div>
+    </div>
+    <div class="scrollbar" id="panel-scrollbar" aria-hidden="true"><div class="scrollbar-thumb"></div></div>
+  </aside>
+</div>
+
+<dialog class="about" id="about" aria-labelledby="about-title">
+  <h2 id="about-title" data-i18n="about.link">このツールについて</h2>
+  <section>
+    <h3 data-i18n="about.local.h">ブラウザの中だけで動きます</h3>
+    <p data-i18n="about.local.p"></p>
+  </section>
+  <section>
+    <h3 data-i18n="about.use.h">書き出したデータの利用</h3>
+    <p data-i18n="about.use.p1"></p>
+    <p data-i18n="about.use.p2"></p>
+  </section>
+  <section>
+    <h3 data-i18n="about.disclaimer.h">免責事項</h3>
+    <p data-i18n="about.disclaimer.p"></p>
+  </section>
+  <section>
+    <h3 data-i18n="about.contact.h">お問い合わせ</h3>
+    <p><span data-i18n="about.contact.p">ご意見・不具合の連絡は X へ：</span> <a href="https://x.com/nebusoku_owl" target="_blank" rel="noopener noreferrer">@nebusoku_owl</a></p>
+  </section>
+  <section>
+    <h3 data-i18n="about.credits.h">使用しているもの</h3>
+    <p class="about-small" data-i18n="about.credits.p"></p>
+  </section>
+  <form method="dialog" class="about-close"><button class="btn" data-i18n="about.close">閉じる</button></form>
+</dialog>
+<!-- 動かない環境向けの案内（上の起動チェックが出す） -->
+<div class="boot-error" id="boot-error" role="alert" hidden>
+  <div class="boot-error-card">
+    <p class="boot-error-title">ぐるぐるルーミス</p>
+    <p id="boot-error-msg"></p>
+  </div>
+</div>
+</body>
+
+<!-- Mirrored from https://nebu-apps.nebu5963.workers.dev/loomis-head/ by HTTrack Website Copier/3.x [XR&CO], Wed, 21 Oct 2026 20:44:47 GMT -->
+</html>
