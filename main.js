@@ -1,12 +1,12 @@
 // 起動・状態管理・自動保存（SPEC F2〜F8）
 
-import { SHAPE_PARAMS, LINE_PARAM, defaultShape, clampShape } from 'loomis.js';
-import { PRESETS, presetShape } from 'presets.js';
-import { HeadView } from 'scene.js';
-import { LANGS, t, initialLang, setLang } from 'i18n.js';
-import { setupFit } from 'fit.js';
-import { setupScrollbar } from 'scrollbar.js';
-import { saveImage, deleteImage, loadImages } from 'images-store.js';
+import { SHAPE_PARAMS, LINE_PARAM, defaultShape, clampShape } from './loomis.js';
+import { PRESETS, presetShape } from './presets.js';
+import { HeadView } from './scene.js';
+import { LANGS, t, initialLang, setLang } from './i18n.js';
+import { setupFit } from './fit.js';
+import { setupScrollbar } from './scrollbar.js';
+import { saveImage, deleteImage, loadImages } from './images-store.js';
 
 const STORE_KEY = 'loomis-head:v1';
 // テスト中の機能（3点で合わせる・GLB の半透明の球）は URL に ?dev を付けたときだけ出す（SPEC §12）
@@ -397,12 +397,12 @@ async function runSave(btn, fn) {
   }
 }
 $('save-png').addEventListener('click', (e) => runSave(e.currentTarget, async () => {
-  const { savePNG } = await import('export.js');
+  const { savePNG } = await import('./export.js');
   const font = getComputedStyle(document.querySelector('.guide-label')).font;
   await savePNG(view, font);
 }));
 $('save-glb').addEventListener('click', (e) => runSave(e.currentTarget, async () => {
-  const { saveGLB } = await import('export.js');
+  const { saveGLB } = await import('./export.js');
   await saveGLB(state.shape, state.display.line, { clearSphere: DEV });
 }));
 
