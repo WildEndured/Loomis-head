@@ -2,7 +2,7 @@
 
 import * as THREE from 'three';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
-import { buildGeometries, COLORS } from 'scene.js';
+import { buildGeometries, COLORS } from './scene.js';
 
 const REAL_RADIUS = 0.09;   // 球の半径の実寸（m）
 const PNG_SCALE = 2;
